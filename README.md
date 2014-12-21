@@ -1,3 +1,7 @@
+# Notice
+Some of below example not suits now because I have __deleted__ all products related.  
+The project now can only build an empty KVM and make a image base on it. The project only present how the process starts and ends.
+
 # Introduction
 
 Compared with previous auto image building job, this one improved some interface.  
