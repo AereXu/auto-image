@@ -1,0 +1,15 @@
+#cloud-config
+password: embms1234
+chpasswd: { expire: False }
+ssh_pwauth: True
+chpasswd:
+  list: |
+    root:embms1234
+  expire: false
+ssh_authorized_keys:
+    - "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAui8nV+jEIxicT8cdVGEsTIbumETKfxZd8PboQDGNEm4wNgF4PMcU3xcOLVeugCL5bob4HdiYDRuMLMuPhncQvSxjEATuahM5C++RxrD3xNRGQGJRoRAg6tgRnv9djmqjjQgw2bx/4/kEyKZqmk93swv6GuS3w3NuvYjTwtGd1V+KiwqLzTpHksmLcyX9SzB4B5gymQbhxgKDjvpaXHzPsZtFku6ITkzff3RCf7BB1mo/tpM2AAPyvbglR5xnIt/GIbMGC1pbJm6/r1EJfzXpI0LnaoYhoNfgVapbKlb9jWGpVE9clMvr1c/gXGfxDcKqMbKnHZIcrBHF5Ja6NjN5cQ=="
+
+runcmd:
+- sed -i'.orig' -e's/without-password/yes/' /etc/ssh/sshd_config
+- echo 'GSSAPIAuthentication no' > /root/.ssh/sshd_config
+- echo "Hello!Now is $(date)"

@@ -1,0 +1,13 @@
+---
+- name: Wait all KVMs complete power on
+  gather_facts: no
+  hosts: localhost
+  sudo: False
+  tags:
+    - waitKVms
+  vars:
+  tasks:
+    - name: Wait the KVM to complete power on then continue, these IPs are recorded when building the KVM
+      wait_for: port=22 delay=0 timeout=180 host={{ item }}
+      with_items:
+        - "{{ kvm_dhcp_ipv4 }}"

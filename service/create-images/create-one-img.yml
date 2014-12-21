@@ -1,0 +1,17 @@
+- include_vars: "{{ vars_path_file }}"
+- name: Get kvm instance name
+  set_fact: instance_kvm_name={{ node_name }}-{{ kvm_id }}
+- name: Get kvm instance working path
+  set_fact: instance_kvm_path={{ kvm_path }}/{{ instance_kvm_name }}
+- name: Wait until the KVM is completely shutted down
+  virt: name={{ instance_kvm_name }} command=status
+  register: result
+  until: "result.status=='shutdown'"
+  retries: 10
+  delay: 5
+- name: "If {{ compress }} equals 'true', then create image sparsify and compress"
+  shell: "virt-sparsify --check-tmpdir fail --convert {{ dest_image_format }} --format {{ kvm.disk.format }} -o compat=0.10  --compress  {{ instance_kvm_path }}/{{ kvm.disk.name }}.{{ kvm.disk.format }}  {{ dest_image_path }}/{{ instance_kvm_name }}-full-img.{{ dest_image_format }}"
+  when: compress == "true"
+- name: "If {{ compress }} equals 'false', just rename image"
+  shell: "cp -f {{ instance_kvm_path }}/{{ kvm.disk.name }}.{{ kvm.disk.format }}  {{ dest_image_path }}/{{ instance_kvm_name }}-full-img.{{ dest_image_format }}"
+  when: compress == "false"

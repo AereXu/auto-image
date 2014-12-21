@@ -1,0 +1,17 @@
+- name: Creating the full image of bmc
+  gather_facts: no
+  hosts: localhost
+  sudo: False
+  vars:
+  vars_files:
+    - ../../vars/kvm-env-conf/kvm-conf.yml
+    - ../../vars/kvm-env-conf/img-conf.yml
+  tags:
+    - createimages
+  tasks:
+  # shutdown KVM one by one using virt 
+    - { include: shutdown-kvm.yml, vars_path_file: ../../vars/kvm-env-conf/instance-conf.yml }
+    - name: Create directory {{ dest_image_path }} to store bdc images
+      file: dest={{ dest_image_path }} state=directory mode=0777
+   # create image one by one using virt-sparsify 
+    - { include: create-one-img.yml, vars_path_file: ../../vars/kvm-env-conf/instance-conf.yml }

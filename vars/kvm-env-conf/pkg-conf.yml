@@ -1,0 +1,18 @@
+---
+
+bdc_3pp_url: https://
+patch_gz_name: Patches.tar.gz
+tripps_gz_name: 3pps.tar.gz
+db_gz_name: DataBase.tar.gz        
+
+
+bdc_staging_url: https://
+ 
+mdf_gz_name: mdf.tar.gz
+adf_gz_name: adf.tar.gz
+install_gz_name: installtools.tar.gz
+
+
+rpm_version: 15b
+git_branch: master
+arm_pkg: arm

@@ -1,0 +1,46 @@
+---
+- name: Remove all packages 
+  gather_facts: no
+  hosts: bdc
+  remote_user: root
+  sudo: True
+  vars:
+  tags:
+    - nodenameconfig
+  tasks:
+    - name: Remove 70-persistent-net.rules file
+      file: dest=/etc/udev/rules.d/70-persistent-net.rules state=absent
+    - name: Remove 75-persistent-net-generator.rules file
+      file: dest=/etc/udev/rules.d/75-persistent-net-generator.rules state=absent
+#    - name: Disable root user
+#      lineinfile: dest=/etc/cloud/cloud.cfg line='disable_root: 1' regexp='^disable_root.*'
+    - name: Remove inner use repo
+      file: dest=/etc/yum.repos.d/rhel6.5-base.repo state=absent
+    - name: Remove cloud instance datas all
+      shell: rm -fr /var/lib/cloud/*
+    - name: Remove system logs 
+      file: dest=/var/log/{{ item }} state=absent
+      with_items:
+        - boot.log
+        - cloud-init-output.log
+        - dmesg
+        - dmesg.old
+        - cron
+        - lastlog
+        - maillog
+        - messages
+        - ntp
+        - secure
+        - spooler
+        - wtmp
+        - rhsm
+        - tuned
+    - name: Remove useless rpms
+      shell: rpm -e {{ item }}
+      with_items:
+        - rhevm-guest-agent-common-1.0.8-10.el6ev.noarch
+    - name: Remove ssh pub-key for all users
+      file: dest={{ item }}/.ssh/authorized_keys state=absent
+      with_items:
+        - '/home/cloud-user'
+        - '/root'

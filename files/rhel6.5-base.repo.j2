@@ -1,0 +1,14 @@
+[rhel65-base]
+name=rhel65-base
+baseurl={{ yum_repo_url }}
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+proxy={{ yum_proxy }}
+
+[rhel65_ha]
+name= Red Hat OS 6.5 HA
+baseurl={{ yum_repo_url }}/HighAvailability
+enabled=1
+gpgcheck=0
+proxy={{ yum_proxy }}

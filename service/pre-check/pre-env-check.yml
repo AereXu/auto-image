@@ -1,0 +1,36 @@
+---
+- name: build all kvm instances
+  gather_facts: no
+  hosts: localhost
+  sudo: False
+  vars:
+  tags:
+    - preenvcheck
+  vars_files:
+    - ../../vars/kvm-env-conf/kvm-conf.yml
+    - ../../vars/kvm-env-conf/env-conf.yml
+    - ../../vars/kvm-env-conf/img-conf.yml
+  tasks:
+    - name: Check if the node {{ node_name }} is available
+      fail: msg="The node {{ node_name }} is illegal, please check!"
+      when: node_name not in "mdfdb,mdfcp,mdfup,adfdb,adffr,adfrr"
+    - name: Check which arm_user is in use => {{ arm_user }}
+      pause: prompt="The arm token of epxpxpx is probably expired! If you do fail at down-CI-pkgs.yml, please contack ETA to update your own arm token. Press any key to continue"
+      when: arm_user == "epxpxpx"
+    - name: Check if the origin cloud image {{ origin_image }} is placed
+      file: dest={{ origin_image }} state=file
+    - name: Check if the current user is able to use libvirt
+      shell: virsh --version
+      register: result
+    - name: Check virsh version
+      fail: msg="Current virsh version {{ result.stdout }} not suits min request"
+      when: result.stdout | version_compare('1.2.0', '<')
+    - name: Check if virtual network {{ vnet_name }} is active
+      shell: virsh net-list | grep {{ vnet_name }}
+    - name: Check if the virt-sparsify is rightly installed
+      shell: virt-sparsify --version | awk '{print $2}'
+      register: result
+      when: compress=='true'
+    - name: Check virt-sparsify version
+      fail: msg="Current virsh version {{ result.stdout }} not suits min request"
+      when: compress=='true' and {{ result.stdout | version_compare('1.24.5', '<') }}

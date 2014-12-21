@@ -1,0 +1,14 @@
+---
+- name: build all kvm instances
+  gather_facts: no
+  hosts: localhost
+  sudo: False
+  vars:
+  tags:
+    - buildKVMs
+  vars_files:
+    - ../../vars/kvm-env-conf/kvm-conf.yml
+  tasks:
+    - { include: build-oneKVM.yml, vars_path_file:  ../../vars/kvm-env-conf/instance-conf.yml  }
+    - name: To chmod of the private key in case it is too open
+      file: dest=../../ansible-conf/ansible.pem state=file mode=0600

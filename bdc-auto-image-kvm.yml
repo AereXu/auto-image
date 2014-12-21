@@ -1,0 +1,10 @@
+---
+- include: service/pre-check/pre-env-check.yml
+- include: service/build-kvm/build-KVMs.yml
+
+- include: service/build-kvm/wait-KVMs.yml
+
+- include: service/install-bdc/pre-os-config.yml
+
+- include: service/cleanup-bdc/remove-conf.yml
+- include: service/create-images/create-images.yml

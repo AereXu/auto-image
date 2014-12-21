@@ -1,0 +1,9 @@
+- include_vars: "{{ vars_path_file }}"
+- name: Get kvm instance name
+  set_fact: instance_kvm_name={{ node_name }}-{{ kvm_id }}
+- name: Check if the KVM is power on (for debug in continue running)
+  virt: name={{ instance_kvm_name }} command=status
+  register: status_result
+- name: Power off the VM before creating a image
+  virt: name={{ instance_kvm_name }} command=shutdown
+  when: status_result.status=='running'

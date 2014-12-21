@@ -1,0 +1,14 @@
+---
+
+host_pkg_path: /var/tmp/bdc-pkgs
+
+vm_pkg_path: /var/tmp
+
+erics_base_path: /opt/ericsson
+
+dns_server1: 150.236.34.180
+dns_server2: 150.236.34.181
+dns_server3: 146.11.115.200
+
+arm_user: epxpxpx
+arm_token: A

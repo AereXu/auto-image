@@ -1,0 +1,21 @@
+---
+
+kvm_id: "01"
+kvm_path: /var/tmp/kvms
+kvm:
+      cpu: 4
+      mem: 6144
+      virt_type: kvm
+      virt_hypervisor: hvm
+      os:
+          type: linux
+          variant: rhel6
+      disk:
+          format: qcow2
+          name: rhel-cloud-image-6.5.x86_64
+
+vnet_name: default
+
+origin_image: /home/embms/epxpxpx/rhel-guest-image-6.5-epx.x86_64.qcow2
+
+

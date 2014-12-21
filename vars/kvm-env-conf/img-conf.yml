@@ -1,0 +1,6 @@
+---
+
+dest_image_path: /var/tmp/bdc-imgs
+dest_image_format: qcow2
+
+compress: 'false' 

@@ -1,0 +1,73 @@
+- include_vars: "{{ vars_path_file }}"
+- name: Generate kvm instance name kvm_id
+  set_fact: instance_kvm_name={{ node_name }}-{{ kvm_id }}
+- name: Generate kvm instance working path
+  set_fact: instance_kvm_path={{ kvm_path }}/{{ instance_kvm_name }}
+- name: Create instance working directory
+  file: path={{ instance_kvm_path }} state=directory mode=0777 
+- name: Generate meta-data for current instance
+  template: src=../../files/meta-data.j2 dest={{ instance_kvm_path }}/meta-data
+- name: Generate user-data for current instance
+  template: src=../../files/user-data.j2 dest={{ instance_kvm_path }}/user-data
+- name: Remove old seed.iso if it exists
+  shell: "[ -f {{ instance_kvm_path }}/seed.iso ] && rm -f {{ instance_kvm_path }}/seed.iso"
+  register: result
+  failed_when: result.rc == 2
+- name: Generate seed.iso for current instance
+  shell: cd {{ instance_kvm_path }} ; genisoimage  -output seed.iso -volid cidata -joliet -rock user-data meta-data
+- name: Check if there has been a KVM
+  virt: command=list_vms
+  register: result
+- name: Check if the KVM is power on
+  virt: name={{ instance_kvm_name }} command=status
+  register: status_result
+  when: " '{{ instance_kvm_name }}' in result.list_vms "
+- name: Power off the VM if it's on
+  virt: name={{ instance_kvm_name }} command=destroy
+  when: " '{{ instance_kvm_name }}' in result.list_vms and status_result.status=='running' "
+- name: Delete the VM if it's there
+  virt: name={{ instance_kvm_name }} command=undefine
+  when: " '{{ instance_kvm_name }}' in result.list_vms "
+- name: copy rhel6.5-cloud-image to {{ instance_kvm_path }}
+  shell: "cp -f {{ origin_image }} {{ instance_kvm_path }}/{{ kvm.disk.name }}.{{ kvm.disk.format }}"
+- name: Create a one KVM for one instance
+  command: virt-install -n {{ instance_kvm_name }}
+               -r {{ kvm.mem }}
+               --vcpus {{ kvm.cpu }}
+               --cpu host
+               --os-type {{ kvm.os.type }}
+               --os-variant {{ kvm.os.variant }}
+               --network network={{ vnet_name }}
+               --graphics vnc
+               --{{ kvm.virt_hypervisor }}
+               --virt-type {{ kvm.virt_type }}
+               --disk path={{ instance_kvm_path }}/{{ kvm.disk.name }}.{{ kvm.disk.format }},format={{ kvm.disk.format }}
+               --noautoconsole
+               --boot hd
+               --cdrom {{ instance_kvm_path }}/seed.iso
+
+- name: Get the bridge name which virtual network {{ vnet_name }} uses
+  shell: virsh net-info {{ vnet_name }} | grep .*ridge | awk '{printf $2}'
+  register: result
+- set_fact: bridge_name={{ result.stdout }}
+- name: Get the mac address of KVM {{ instance_kvm_name }}
+  shell: virsh dumpxml {{ instance_kvm_name }} | sed -n '/mac address/p' | awk -F"[']" '{print $2}'
+  register: result
+- set_fact: mac_address={{ result.stdout }}
+- name: Get IPv4 from arp request
+  shell: arp -n -i {{ bridge_name }} | grep {{ mac_address }} | awk '{printf $1}'
+  register: result
+  failed_when: result.rc==2
+  until: result.stdout!=''
+  retries: 30
+  delay: 2
+- set_fact: instance_ipv4={{ result.stdout }}
+- debug: msg="{{ instance_kvm_name }}`s IPv4 is {{ instance_ipv4 }}"
+- name: Add the new host IP to groups
+  add_host: hostname={{ node_name }}
+            ansible_ssh_host={{ instance_ipv4 }}
+            ansible_ssh_port=22
+            groups=bdc
+            
+- name: Record IPs as facts for wait_for module
+  set_fact: "kvm_dhcp_ipv4={{ instance_ipv4 }}"

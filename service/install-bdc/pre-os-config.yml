@@ -1,0 +1,37 @@
+---
+- name: Pre-config os before installation
+  gather_facts: no
+  hosts: bdc
+  remote_user: root
+  sudo: True
+  vars:
+  tags:
+    - preosconfig
+  vars_files:
+    - ../../vars/kvm-env-conf/yum-conf.yml
+  tasks:
+    - name: Config yum repository for CI env
+      template: src=../../files/rhel6.5-base.repo.j2 dest=/etc/yum.repos.d/rhel6.5-base.repo mode=0644
+    - name: Install needed program for install
+      yum: name={{ item }} state=present
+      with_items:
+        - unzip
+        - lsof
+        - ntp
+        - dos2unix
+        - libselinux-python
+        - pexpect
+        - expect
+    - name: Downgrade glibc and nss-softokn to suit for glibc.i686
+      shell: yum downgrade {{ item }} -y
+      with_items:
+        - "nss-softokn-freebl"
+        - "glibc glibc-common"
+    - name: Install glibc.i686
+      yum: name=glibc.i686 state=present
+    - name: Install uuid and libxslt for postgress
+      yum: name={{ item }} state=present
+      with_items:
+        - uuid
+        - libxslt
+      when: node_name == 'mdfdb'
